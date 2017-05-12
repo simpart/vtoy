@@ -1,0 +1,10 @@
+<Directory "/var/www/html/ultoy">
+    Require all granted
+    DirectoryIndex index.php index.html index.htm
+    AllowOverride All
+    Options Indexes FollowSymLinks SymLinksIfOwnerMatch
+
+    RewriteEngine on
+    RewriteRule .* /var/www/html/ultoy/src/php/route.php
+
+</Directory>
