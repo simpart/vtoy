@@ -5,4 +5,4 @@ cd $SCP_DIR/../
 echo $(pwd);
 
 WEBPACK=node_modules/.bin/webpack
-echo $($WEBPACK --config conf/webpack/webpack.config.login.js);
+echo $($WEBPACK --config conf/webpack/webpack.config.js);
