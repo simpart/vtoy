@@ -1,0 +1,32 @@
+# this is routing config file
+# please defined routing config by yaml type
+# 
+# KEY description
+#   url   : request url
+#   conts : contents file path corresponding to url
+#   attr  : attribute for routing engine
+# 
+
+####################
+#   sample config  #
+####################
+### login page config ###
+# - 
+#   url   : /login
+#   conts : ./html/login.html
+#   attr  :
+#     - login
+
+### main contents page config ###
+# - 
+#   url   : /
+#   conts : ./html/top.html
+#   attr  : null
+#
+
+### Private Contents ###
+# - 
+#   url   : /src/php/*
+#   conts : ./html/err/400.html 
+
+

@@ -1,0 +1,13 @@
+-
+  url   : /
+  conts : ./html/index.html
+  #attr  : null
+-
+  url   : /login
+  conts : ./html/login.html
+  attr  : 
+   - login
+- url   : /src/js/app/login.js
+  conts : /src/js/app/login.js
+  attr  :
+   - login
