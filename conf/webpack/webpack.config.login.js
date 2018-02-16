@@ -5,9 +5,9 @@ module.exports = {
         path: __dirname + '/../../src/js/app',
         filename: 'login.js'
     },
-    plugins: [
-        new webpack.optimize.UglifyJsPlugin()
-    ],
+    //plugins: [
+    //    new webpack.optimize.UglifyJsPlugin()
+    //],
     module: {
         loaders: [{
             test: /\.js$/,

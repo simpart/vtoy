@@ -4,6 +4,5 @@
  * @brief define list about routing
  * @autor simpart
  */
-define('DRTG_APP_TITLE', 'ultoy');
-define('DRTG_CNF_PATH' , __DIR__ . '/../../../conf/urlmap/');
+define('DCOM_APP_TITLE', 'ultoy');
 /* end of file */

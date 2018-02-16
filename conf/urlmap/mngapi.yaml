@@ -1,0 +1,6 @@
+
+-
+  url   : /mng/login
+  conts : ./src/php/auth/login.php
+  attr  :
+   - rest
