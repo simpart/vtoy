@@ -4,6 +4,6 @@
  * @brief define list for authentiocation function
  * @author simpart
  */
-define('DATHLGN_CHKKEY', 'loggedin');
-
+define('DATH_LGN_CHK', 'loggedin');
+define('DATH_SES_TO' , '1800');
 /* end of file */

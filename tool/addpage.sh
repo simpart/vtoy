@@ -74,10 +74,14 @@ fi
 sudo rm ${ADDWEBPK}.bak
 
 # add build script
-WEBPACK1='echo $($WEBPACK --config '
-WEBPACK2="conf/webpack/webpack.config.${PAGE_NAME}.js"
-WEBPACK3=');'
-echo $WEBPACK1 $WEBPACK2 $WEBPACK3 >> ./tool/build.sh
+
+WEBPACK1="EXEC=\"\$WEBPACK --config conf/webpack/webpack.config.${PAGE_NAME}.js --mode \$MODE\""
+WEBPACK2='echo $EXEC'
+WEBPACK3='echo $($EXEC);'
+
+echo $WEBPACK1 >> ./tool/build.sh
+echo $WEBPACK2 >> ./tool/build.sh
+echo $WEBPACK3 >> ./tool/build.sh
 
 # add urlmap
 PAGEMAP="./conf/urlmap/pagemap.yaml"

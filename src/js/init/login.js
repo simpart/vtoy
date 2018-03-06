@@ -18,7 +18,7 @@ let theme = require('../conf/theme.js');
 let start = (rt) => {
     try {
         let login = new Login({
-            title    : 'ULTOY',
+            title    : 'vToy',
             color    : new mf.Color(200,200,230),
             authConf : new mf.Param(
                            './mng/login',
@@ -26,6 +26,8 @@ let start = (rt) => {
                                try {
                                    if ((false === ret.result) || (false === ret.message)) {
                                        form.message('Invalid Username or Password.');
+                                   } else if ((true === ret.result) || (true === ret.message)) {
+                                       window.location.href = './';
                                    }
                                } catch (e) {
                                    console.error(e.stack);

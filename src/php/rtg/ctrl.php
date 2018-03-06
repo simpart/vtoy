@@ -14,10 +14,11 @@ define('DRTG_CNF_PATH', __DIR__ . '/../../../conf/urlmap/');
 try {
     /* check url, check contents path */
     $rtg = new UrlRouting(
-                   $_SERVER['REQUEST_URI'],
-                   DCOM_APP_TITLE,
-                   DRTG_CNF_PATH
-               );
+               $_SERVER['REQUEST_URI'],
+               DCOM_APP_TITLE,
+               DRTG_CNF_PATH
+           );
+
     $path = $rtg->getContsPath();
     $rst_flg = false;
     /* check request type */
@@ -37,7 +38,7 @@ try {
     \ttr\header\setContsType($path);
     /* return contents or execute api */
     $ret = require($path);
-    
+
     /* return api value */
     if (true === $rst_flg) {
         \ttr\rest\resp($ret);

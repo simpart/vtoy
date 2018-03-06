@@ -166,7 +166,7 @@ class UrlMap {
             
             foreach ($this->conf as $celm) {
                 $c_url = new \ttr\routing\URL($celm['url']);
-                // check root(/) request
+                /* check root(/) request */
                 if (0 === count($c_url->getUrl())) {
                     if (0 === count($p_url->getUrl())) {
                         return $celm;
@@ -175,18 +175,18 @@ class UrlMap {
                     }
                 }
                 
-                // check matched url
+                /* check matched url */
                 $mch     = true;
                 $cnf_url = $c_url->getUrl();
                 
                 foreach ($cnf_url as $cidx => $cval) {
-                    // check regex
+                    /* check regex */
                     if (0 === strcmp('*', $cval)) {
                         if ($cidx >= count($p_url->getUrl())) {
                             $mch = false;
                             break;
                         }
-                        // skip check
+                        /* skip check */
                         continue;
                     } else if ($cidx >= count($p_url->getUrl())) {
                         $mch = false;
@@ -198,13 +198,13 @@ class UrlMap {
                         break;
                     }
                 }
-                // check matched
+                /* check matched */
                 if (true === $mch) {
                     // matched url
                     return $celm;
                 }
             }
-            // no matched url
+            /* no matched any url config */
             return null;
         } catch (\Exception $e) {
             throw new \Exception(

@@ -17,8 +17,11 @@ try {
     }
     
     /* set session */
-    $ses   = new \ttr\session\Controller(DCOM_APP_TITLE);
-    $ses->set(DATHLGN_CHKKEY, true);
+    $ses = new \ttr\session\Controller(
+               DCOM_APP_TITLE,
+               DATH_SES_TO
+           );
+    $ses->set(DATH_LGN_KEY, true);
     
     return true;
 } catch (\Exception $e) {

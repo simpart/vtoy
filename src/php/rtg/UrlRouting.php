@@ -82,7 +82,7 @@ class UrlRouting {
     public function loginRequired () {
         try {
             $login_attr_hit = false;
-            // check exists login attribute
+            /* check exists login attribute */
             foreach ($this->map as $map_elm) {
                 if (true === $map_elm->existsAttr('login')) {
                     $login_attr_hit = true;
@@ -93,7 +93,7 @@ class UrlRouting {
                 return false;
             }
             
-            // check attribute whether login value is exists
+            /* check attribute whether login value is exists */
             foreach ($this->map as $map_elm) {
                 /* check exsist map */
                 if (null === $map_elm->getConts($this->url)) {
@@ -103,7 +103,7 @@ class UrlRouting {
                 /* check attribute value */
                 return !($map_elm->isAttr($this->url, 'login'));
             }
-            throw new \Exception('not matched request');
+            return true;
         } catch (\Exception $e) {
             throw new \Exception(
                 PHP_EOL   .

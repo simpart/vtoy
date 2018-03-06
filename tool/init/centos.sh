@@ -43,6 +43,6 @@ rm -rf ./src/js/comp/.dmy
 rm -rf ./html/.dmy
 rm -rf ./img/.dmy
 rm -rf ./font/.dmy
-
+rm -rf .git/
 
 echo "initialized mofron env"
