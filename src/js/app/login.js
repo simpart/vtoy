@@ -1019,8 +1019,54 @@ mf.comp.Form = function (_mf$Component) {
                 _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, this.message(), false);
                 var sub = this.submitComp();
                 _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, sub.parent().parent());
+
+                this.initKeyEvent();
             } catch (e) {
                 console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'initKeyEvent',
+        value: function initKeyEvent() {
+            try {
+                if (undefined !== window.onkeyup) {
+                    var form = this;
+                    window.onkeyup = function (e) {
+                        try {
+                            var key = e.keyCode ? e.keyCode : e.which;
+                            var chd = form.child();
+                            var send_ret = null;
+                            for (var cidx in chd) {
+                                if (true !== mf.func.isInclude(chd[cidx], 'Form')) {
+                                    continue;
+                                }
+                                if (13 === key && true === chd[cidx].isFocused()) {
+                                    send_ret = form.send();
+                                    if (null !== send_ret) {
+                                        form.message(send_ret['cause']);
+                                    }
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            console.error(e.stack);
+                            throw e;
+                        }
+                    };
+                }
+            } catch (e) {
+                console.log(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'isFocused',
+        value: function isFocused() {
+            try {
+                console.warn('not implements');
+            } catch (e) {
+                console.log(e.stack);
                 throw e;
             }
         }
@@ -8206,6 +8252,21 @@ mf.comp.Input = function (_Form) {
                 if (true === rsiz) {
                     this.height(50);
                 }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'isFocused',
+        value: function isFocused() {
+            try {
+                var chk_id = document.activeElement.id;
+                var inp_dom = this.adom().child()[0].child()[1];
+                if (chk_id === inp_dom.getId()) {
+                    return true;
+                }
+                false;
             } catch (e) {
                 console.error(e.stack);
                 throw e;
