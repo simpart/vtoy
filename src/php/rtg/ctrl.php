@@ -18,8 +18,7 @@ try {
                DCOM_APP_TITLE,
                DRTG_CNF_PATH
            );
-
-    $path = $rtg->getContsPath();
+    $path    = $rtg->getContsPath();
     $rst_flg = false;
     /* check request type */
     if (true === $rtg->isRest()) {

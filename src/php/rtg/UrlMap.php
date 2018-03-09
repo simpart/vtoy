@@ -167,14 +167,15 @@ class UrlMap {
             foreach ($this->conf as $celm) {
                 $c_url = new \ttr\routing\URL($celm['url']);
                 /* check root(/) request */
-                if (0 === count($c_url->getUrl())) {
-                    if (0 === count($p_url->getUrl())) {
+                if (0 === count($p_url->getUrl())) {
+                    if (0 === count($c_url->getUrl())) {
                         return $celm;
                     } else {
                         continue;
                     }
+                } else if (0 === count($c_url->getUrl())) {
+                    continue;
                 }
-                
                 /* check matched url */
                 $mch     = true;
                 $cnf_url = $c_url->getUrl();

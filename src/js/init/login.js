@@ -13,9 +13,9 @@ let theme = require('../conf/theme.js');
 /**
  * page init function
  * 
- * @param rt : root component
+ * @param rc : root component
  */
-let start = (rt) => {
+let start = (rc) => {
     try {
         let login = new Login({
             title    : 'vToy',
@@ -41,9 +41,9 @@ let start = (rt) => {
         login.frame().width(500);
         login.frame().effect([
             new Shadow(20),
-            new Fade()
+            //new Fade()
         ]);
-        rt.addChild(login);
+        rc.addChild(login);
     } catch (e) {
         console.error(e.stack);
         throw e;

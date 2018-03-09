@@ -351,6 +351,8 @@ module.exports = mofron.comp.Text;
 "use strict";
 
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -382,7 +384,7 @@ mofron.event.Click = function (_mofron$Event) {
             /* font theme */
             _this.m_pointer = true;
 
-            if ('object' === fnc) {
+            if ('object' === (typeof fnc === 'undefined' ? 'undefined' : _typeof(fnc))) {
                 _this.prmOpt(fnc);
             } else {
                 _this.handler(fnc, prm);
@@ -1007,15 +1009,38 @@ mf.comp.Form = function (_mf$Component) {
 
     _createClass(_class, [{
         key: 'initDomConts',
-        value: function initDomConts(prm) {
+        value: function initDomConts(mgn, cnt) {
             try {
                 _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'initDomConts', this).call(this);
+                this.target().style({ 'width': '100%' });
 
-                this.layout([new Margin('top', 25), new Center({ rate: 70 })]);
+                this.layout([new Margin('top', undefined === mgn ? 25 : mgn), new Center({ rate: undefined === cnt ? 70 : cnt })]);
 
                 _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, this.message(), false);
                 var sub = this.submitComp();
                 _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, sub.parent().parent());
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'marginCenter',
+        value: function marginCenter(mgn, cnt) {
+            try {
+                var margin = this.getConfig('layout', 'Margin');
+                var center = this.getConfig('layout', 'HrzCenter');
+                if (undefined === mgn) {
+                    /* getter */
+                    return [null === margin ? margin : margin.value(), null === center ? center : center.rate()];
+                }
+                /* setter */
+                if (null !== margin) {
+                    margin.value(mgn);
+                }
+                if (null !== center) {
+                    center.rate(cnt);
+                }
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -1044,8 +1069,30 @@ mf.comp.Form = function (_mf$Component) {
             }
         }
     }, {
+        key: 'sendEvent',
+        value: function sendEvent(func, prm) {
+            try {
+                if (undefined === func) {
+                    /* getter */
+                    return undefined === this.m_sendevt ? new Array(null, null) : this.m_sendevt;
+                }
+                /* setter */
+                if ('function' !== typeof func) {
+                    throw new Error('invalid parameter');
+                }
+                if (undefined === this.m_sendevt) {
+                    this.m_sendevt = new Array(null, null);
+                }
+                this.m_sendevt[0] = func;
+                this.m_sendevt[1] = undefined === prm ? null : prm;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
         key: 'send',
-        value: function send(url) {
+        value: function send() {
             try {
                 if (0 === this.child().length) {
                     return {
@@ -1073,6 +1120,9 @@ mf.comp.Form = function (_mf$Component) {
                 xhr.open('POST', send_uri);
                 var send_val = this.value();
 
+                if (null !== this.sendEvent()[0]) {
+                    this.sendEvent()[0](this, this.sendEvent()[1]);
+                }
                 xhr.send(JSON.stringify(send_val));
                 return null;
             } catch (e) {
@@ -1213,12 +1263,38 @@ mf.comp.Form = function (_mf$Component) {
                     this.m_message = msg;
                 } else if ('string' === typeof msg) {
                     this.message().text(msg);
-                    this.message().visible('' === msg ? false : true);
+                    this.message().visible(true);
+                    var mevt = this.msgEvent();
+                    if (null !== mevt[0]) {
+                        mevt[0](msg, mevt[1]);
+                    }
                 } else if (null === msg) {
                     this.message().visible(false);
+                    var _mevt = this.msgEvent();
+                    if (null !== _mevt[0]) {
+                        _mevt[0](msg, _mevt[1]);
+                    }
                 } else {
                     throw new Error('invalid parameter');
                 }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'msgEvent',
+        value: function msgEvent(fnc, prm) {
+            try {
+                if (undefined === fnc) {
+                    /* getter */
+                    return undefined === this.m_msg_evt ? [null, null] : this.m_msg_evt;
+                }
+                /* setter */
+                if ('function' !== typeof fnc) {
+                    throw new Error('invalid paramter');
+                }
+                this.m_msg_evt = new Array(fnc, prm);
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -1231,39 +1307,46 @@ mf.comp.Form = function (_mf$Component) {
                 if (undefined === sub) {
                     /* getter */
                     if (undefined === this.m_submit) {
-                        this.submitComp(new Button('Send'));
+                        this.submitComp(new Button({
+                            text: 'Send',
+                            size: new mf.Param(100, 30)
+                        }));
                     }
                     return this.m_submit;
                 }
                 /* setter */
+                var clk_fnc = function clk_fnc(tgt, frm) {
+                    try {
+                        var ret = frm.send();
+                        if (null !== ret) {
+                            frm.message(ret['cause']);
+                        }
+                    } catch (e) {
+                        console.error(e.stack);
+                        throw e;
+                    }
+                };
                 if (true === mf.func.isInclude(sub, 'Button')) {
                     if (undefined !== this.m_submit) {
                         sub.color(this.m_submit.color());
                         sub.size(this.m_submit.size()[0], this.m_submit.size()[1]);
+                        sub.clickEvent(clk_fnc, this);
                         this.m_submit.parent().updChild(this.m_submit, sub);
                         return;
                     }
+                    var sub_wid = 'number' === typeof sub.width() ? sub.width() + 'px' : sub.width();
                     new mf.Component({
                         addChild: new mf.Component({
                             addChild: sub,
                             style: {
-                                width: null === sub.width() ? '100px' : sub.width() + 'px',
-                                'margin-left': 'auto'
+                                'position': 'relative',
+                                'margin-left': '100%',
+                                'left': '-' + sub_wid
                             }
                         })
                     });
                     sub.width(null === sub.width() ? 100 : undefined);
-                    sub.clickEvent(function (tgt, frm) {
-                        try {
-                            var ret = frm.send();
-                            if (null !== ret) {
-                                frm.message(ret['cause']);
-                            }
-                        } catch (e) {
-                            console.error(e.stack);
-                            throw e;
-                        }
-                    }, this);
+                    sub.clickEvent(clk_fnc, this);
                     this.m_submit = sub;
                 } else if ('string' === typeof sub) {
                     this.submitComp().text(sub);
@@ -1283,6 +1366,74 @@ mf.comp.Form = function (_mf$Component) {
                     _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, chd, undefined === idx ? this.child().length - 1 : idx);
                 } else {
                     _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'addChild', this).call(this, chd, idx);
+                }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'width',
+        value: function width(prm) {
+            try {
+                var hcnt = this.getConfig('layout', 'HrzCenter');
+                if (undefined === prm) {
+                    /* getter */
+                    if (null === hcnt) {
+                        return null;
+                    }
+                    return hcnt.rate() + '%';
+                }
+                /* setter */
+                if (null === hcnt) {
+                    var chd = this.child();
+                    for (var cidx in chd) {
+                        if (true === mf.func.isInclude(chd[cidx], 'Form')) {
+                            chd[cidx].width(prm);
+                        }
+                    }
+                } else {
+                    hcnt.rate(prm);
+                }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'height',
+        value: function height(prm) {
+            try {
+                var mrg = this.getConfig('layout', 'Margin');
+                var chd = this.child();
+                if (undefined === prm) {
+                    /* getter */
+                    var hret = 0;
+                    var mval = null === mrg ? 0 : mrg.value();
+                    for (var cidx in chd) {
+                        if (true === mf.func.isInclude(chd[cidx], 'Message') && false === chd[cidx].visible()) {
+                            continue;
+                        }
+                        if (parseInt(cidx) + 1 == chd.length) {
+                            hret += this.submitComp().height();
+                        } else {
+                            hret += 'number' === typeof chd[cidx].height() ? chd[cidx].height() : 0;
+                        }
+                        hret += mval;
+                    }
+                    return hret;
+                }
+                /* setter */
+                if (null === mrg) {
+                    if ('number' !== typeof prm) {
+                        throw new Error('invalid paramter');
+                    }
+                    var chei = prm / (0 === chd.length) ? 1 : chd.length;
+                    for (var _cidx in chd) {
+                        chd[_cidx].height(chei);
+                    }
+                } else {
+                    mrg.value(prm);
                 }
             } catch (e) {
                 console.error(e.stack);
@@ -1318,17 +1469,19 @@ var theme = __webpack_require__(44);
 /**
  * page init function
  * 
- * @param rt : root component
+ * @param rc : root component
  */
-var start = function start(rt) {
+var start = function start(rc) {
     try {
         var login = new Login({
-            title: 'ULTOY',
+            title: 'vToy',
             color: new mf.Color(200, 200, 230),
             authConf: new mf.Param('./mng/login', function (ret, form) {
                 try {
                     if (false === ret.result || false === ret.message) {
                         form.message('Invalid Username or Password.');
+                    } else if (true === ret.result || true === ret.message) {
+                        window.location.href = './';
                     }
                 } catch (e) {
                     console.error(e.stack);
@@ -1337,8 +1490,10 @@ var start = function start(rt) {
         });
         login.header().addEffect(new Shadow(20));
         login.frame().width(500);
-        login.frame().effect([new Shadow(20), new Fade()]);
-        rt.addChild(login);
+        login.frame().effect([new Shadow(20)]
+        //new Fade()
+        );
+        rc.addChild(login);
     } catch (e) {
         console.error(e.stack);
         throw e;
@@ -2037,7 +2192,12 @@ module.exports = {
             } else {
                 var add_conts = '<' + tag + ' ' + attr_conts + '>' + conts_str;
             }
-            document.head.insertAdjacentHTML('beforeend', add_conts);
+
+            if (undefined !== mofron.ssr) {
+                mofron.ssr.head(add_conts);
+            } else {
+                document.head.insertAdjacentHTML('beforeend', add_conts);
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -2850,6 +3010,27 @@ mofron.Dom = function (_mofron$Base) {
                 throw e;
             }
         }
+    }, {
+        key: 'styleListener',
+        value: function styleListener(key, func, prm) {
+            try {
+                if (undefined === key) {
+                    /* getter */
+                    return undefined === this.m_style_lis ? [] : this.m_style_lis;
+                }
+                /* setter */
+                if (undefined === this.m_style_lis) {
+                    this.m_style_lis = {};
+                }
+                if ('string' !== typeof key || 'function' !== typeof func) {
+                    throw new Error('invalid parameter');
+                }
+                this.m_style_lis[key] = [func, prm];
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
 
         /**
          * style setter / getter
@@ -2868,13 +3049,6 @@ mofron.Dom = function (_mofron$Base) {
                     return this.m_style.get(kv);
                 }
                 /* setter */
-                var chgcnf = {};
-                for (var kv_idx in kv) {
-                    if (kv[kv_idx] !== this.style(kv_idx)) {
-                        chgcnf[kv_idx] = kv[kv_idx];
-                    }
-                }
-
                 if (true === los) {
                     this.m_style.protect(true);
                     this.m_style.set(kv);
@@ -2883,9 +3057,16 @@ mofron.Dom = function (_mofron$Base) {
                     this.m_style.set(kv);
                 }
 
-                if (0 !== chgcnf.length) {
-                    this.execConfListener('style', chgcnf);
+                /* execute style listener */
+                var lisner = this.styleListener();
+                for (var kv_idx in kv) {
+                    for (var lis_idx in lisner) {
+                        if (kv_idx === lis_idx) {
+                            lisner[lis_idx][0](lisner[lis_idx][1]);
+                        }
+                    }
                 }
+
                 this.value(null);
             } catch (e) {
                 console.error(e.stack);
@@ -2925,9 +3106,9 @@ mofron.Dom = function (_mofron$Base) {
                     this.m_attr.set(kv);
                 }
 
-                if (0 !== chgcnf.length) {
-                    this.execConfListener('attr', chgcnf);
-                }
+                //if (0 !== chgcnf.length) {
+                //    this.execConfListener ('attr', chgcnf);
+                //}
                 this.value(null);
             } catch (e) {
                 console.error(e.stack);
@@ -2966,9 +3147,9 @@ mofron.Dom = function (_mofron$Base) {
                     this.m_prop.set(kv);
                 }
 
-                if (0 !== chgcnf.length) {
-                    this.execConfListener('prop', chgcnf);
-                }
+                //if (0 !== chgcnf.length) {
+                //    this.execConfListener ('prop', chgcnf);
+                //}
                 this.value(null);
             } catch (e) {
                 console.error(e.stack);
@@ -2992,7 +3173,7 @@ mofron.Dom = function (_mofron$Base) {
                 }
                 /* setter */
                 this.m_classnm.add(name);
-                this.execConfListener('className', name);
+                //this.execConfListener('className', name);
                 this.value(null);
             } catch (e) {
                 console.error(e.stack);
@@ -3029,40 +3210,42 @@ mofron.Dom = function (_mofron$Base) {
                     this.getRawDom().innerHTML = txt;
                 }
 
-                if (null !== chgcnf) {
-                    this.execConfListener('text', txt);
-                }
+                //if (null !== chgcnf) {
+                //this.execConfListener ('text', txt);
+                //}
                 this.value(null);
             } catch (e) {
                 console.error(e.stack);
                 throw e;
             }
         }
-    }, {
-        key: 'addConfListener',
-        value: function addConfListener(fnc, prm) {
-            try {
-                if ('function' !== typeof fnc) {
-                    throw new Error('invalid parameter');
-                }
-                this.m_cnflis.push([fnc, prm]);
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'execConfListener',
-        value: function execConfListener(type, prm) {
-            try {
-                for (var idx in this.m_cnflis) {
-                    this.m_cnflis[idx][0](type, prm, this.m_cnflis[idx][1]);
-                }
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
+
+        //addConfListener (fnc, prm) {
+        //    try {
+        //        if ('function' !== typeof fnc) {
+        //            throw new Error('invalid parameter');
+        //        }
+        //        this.m_cnflis.push([fnc, prm]);
+        //    } catch (e) {
+        //        console.error(e.stack);
+        //        throw e;
+        //    }
+        //}
+        //
+        //execConfListener (type, prm) {
+        //    try {
+        //        for (var idx in this.m_cnflis) {
+        //            this.m_cnflis[idx][0](
+        //                type,
+        //                prm,
+        //                this.m_cnflis[idx][1]
+        //            );
+        //        }
+        //    } catch (e) {
+        //        console.error(e.stack);
+        //        throw e;
+        //    }
+        //}
 
         /**
          * dom string setter / getter
@@ -4675,7 +4858,7 @@ mofron.Component = function (_mofron$Base) {
                 this.child()[upd_idx].destroy();
 
                 this.target(old_tgt);
-                this.addChild(n_chd, upd_disp, upd_idx);
+                this.addChild(n_chd, upd_idx);
                 this.target(buf_tgt);
             } catch (e) {
                 console.error(e.stack);
@@ -4721,6 +4904,31 @@ mofron.Component = function (_mofron$Base) {
                     this.destroy();
                 }
                 this.m_parent = pnt;
+                var lis = this.parentListener();
+                for (var lidx in lis) {
+                    lis[lidx][0](this, lis[lidx][1]);
+                }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'parentListener',
+        value: function parentListener(evt, prm) {
+            try {
+                if (undefined === evt) {
+                    /* getter */
+                    return undefined === this.m_pnt_lis ? [] : this.m_pnt_lis;
+                }
+                /* setter */
+                if ('function' !== typeof evt) {
+                    throw new Error('invalid parameter');
+                }
+                if (undefined === this.m_pnt_lis) {
+                    this.m_pnt_lis = new Array();
+                }
+                this.m_pnt_lis.push([evt, prm]);
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -4859,6 +5067,36 @@ mofron.Component = function (_mofron$Base) {
                     for (var cidx in cnf) {
                         if (cnf[cidx].name() === nm) {
                             return cnf[cidx];
+                        }
+                    }
+                } else {
+                    return cnf;
+                }
+                return null;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'delConfig',
+        value: function delConfig(tp, nm) {
+            try {
+                if ('layout' !== tp && 'effect' !== tp && 'event' !== tp) {
+                    throw new Error('invalid type');
+                }
+                var cnf = this[tp]();
+                if (undefined !== nm) {
+                    for (var cidx in cnf) {
+                        if (cnf[cidx].name() === nm) {
+                            /* delete target */
+                            if ('layout' === tp) {
+                                this.m_conf[0].splice(cidx, 1);
+                            } else if ('effect' === tp) {
+                                this.m_conf[1].splice(cidx, 1);
+                            } else if ('event' === tp) {
+                                this.m_conf[2].splice(cidx, 1);
+                            }
                         }
                     }
                 } else {
@@ -5079,7 +5317,6 @@ mofron.Component = function (_mofron$Base) {
         key: 'initDomContsCtl',
         value: function initDomContsCtl() {
             try {
-                console.log();
                 if (false === this.isInitDom()) {
                     this.adom(new mofron.Adom());
                     this.adom().component(this);
@@ -5234,6 +5471,26 @@ mofron.Component = function (_mofron$Base) {
                 /* setter */
                 this.style({
                     'height': 'number' === typeof y ? y + 'px' : y
+                });
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'color',
+        value: function color(val) {
+            try {
+                if (undefined === val) {
+                    /* getter */
+                    return undefined === this.m_color ? null : this.m_color;
+                }
+                /* setter */
+                if (true !== mofron.func.isInclude(val, 'Color')) {
+                    throw new Error('invalid parameter');
+                }
+                this.style({
+                    'background': val.getStyle()
                 });
             } catch (e) {
                 console.error(e.stack);
@@ -5462,6 +5719,8 @@ mofron.Event = function (_mofron$CompConf) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -5485,7 +5744,6 @@ mofron.Effect = function (_mofron$CompConf) {
             _this.m_cb = new Array(null, /* function */
             null /* parameter */
             );
-            _this.execOption(po);
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -5659,6 +5917,32 @@ mofron.Effect = function (_mofron$CompConf) {
         value: function callback(fnc, prm) {
             try {
                 return this.confFunc(fnc, prm);
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'param',
+        value: function param(val) {
+            try {
+                var ret = _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'param', this).call(this, val);
+                if (undefined === ret) {
+                    var prm = val.getParam();
+                    var plen = val.getParam().length;
+                    if (1 === plen) {
+                        this.value(prm[0]);
+                    } else if (2 === plen) {
+                        this.value(prm[0], prm[1]);
+                    } else if (3 === plen) {
+                        this.value(prm[0], prm[1], prm[2]);
+                    } else if (4 === plen) {
+                        this.value(prm[0], prm[1], prm[2], prm[3]);
+                    } else if (5 === plen) {
+                        this.value(prm[0], prm[1], prm[2], prm[3], prm[4]);
+                    }
+                }
+                return ret;
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -5906,7 +6190,6 @@ mf.comp.Login = function (_Appbase) {
 
             _this.name('Login');
             _this.prmOpt(po);
-            _this.adom();
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -5933,48 +6216,14 @@ mf.comp.Login = function (_Appbase) {
                 /* set form */
                 this.frame().addChild(this.form());
 
-                this.size(50);
-
-                mf.func.addResizeWin(this.resizeEvent, this);
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'themeConts',
-        value: function themeConts() {
-            try {
-                /* set wrap color */
-                var thm_clr = this.theme().color();
-                if (null !== thm_clr) {
-                    this.color(thm_clr);
-                }
-
-                /* set frame */
-                var frm = this.theme().component('mofron-comp-frame');
-                if (null !== frm) {
-                    this.frame(frm);
-                }
-
-                /* set form */
-                var fom = this.theme().component('mofron-comp-form');
-                if (null !== fom) {
-                    this.form(fom);
-                }
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'resizeEvent',
-        value: function resizeEvent(base) {
-            try {
-                var center = base.frame().getConfig('effect', 'Center');
-                if (null !== center) {
-                    center.execute(true);
-                }
+                this.form().msgEvent(function (msg, lgn) {
+                    try {
+                        lgn.frame().height(lgn.form().height() + 35);
+                    } catch (e) {
+                        console.error(e.stack);
+                        throw e;
+                    }
+                }, this);
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -5988,7 +6237,8 @@ mf.comp.Login = function (_Appbase) {
                     /* getter */
                     if (undefined === this.m_frame) {
                         this.frame(new Frame({
-                            color: new mf.Color(240, 240, 240)
+                            size: new mf.Param(450, 240),
+                            color: new mf.Color(250, 250, 250)
                         }));
                     }
                     return this.m_frame;
@@ -6013,7 +6263,7 @@ mf.comp.Login = function (_Appbase) {
                 if (undefined === fom) {
                     /* getter */
                     if (undefined === this.m_form) {
-                        this.form(new LoginForm());
+                        this.form(new LoginForm({}));
                     }
                     return this.m_form;
                 }
@@ -6021,7 +6271,6 @@ mf.comp.Login = function (_Appbase) {
                 if (false === mf.func.isInclude(fom, 'Form')) {
                     throw new Error('invalid parameter');
                 }
-                this.addFormResizeEvent(fom);
                 this.m_form = fom;
             } catch (e) {
                 console.error(e.stack);
@@ -6039,30 +6288,6 @@ mf.comp.Login = function (_Appbase) {
                 /* setter */
                 btn.text('Login');
                 this.form().submitComp(btn);
-                this.addFormResizeEvent(this.form());
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'addFormResizeEvent',
-        value: function addFormResizeEvent(fom) {
-            try {
-                var login = this;
-                fom.submitComp().addEvent(new Click(function (tgt, p) {
-                    try {
-                        //let msg = 
-                        if (true === p.visible()) {
-                            var size = login.frame().size();
-                            login.frame().size(size[0], login.form().height());
-                            login.resizeEvent(login, false);
-                        }
-                    } catch (e) {
-                        console.error(e.stack);
-                        throw e;
-                    }
-                }, fom.message()));
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -6074,22 +6299,6 @@ mf.comp.Login = function (_Appbase) {
             try {
                 var ret = this.form().uri(uri);
                 this.form().callback(func, this);
-                return ret;
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'size',
-        value: function size(val) {
-            try {
-                var ret = this.form().size(val); // login form size
-                if (undefined !== val) {
-                    this.header().height(val + 15); // header size
-                    var hei = this.form().height();
-                    this.frame().size(420, hei); // frame size
-                }
                 return ret;
             } catch (e) {
                 console.error(e.stack);
@@ -6116,6 +6325,7 @@ mf.comp.Login = function (_Appbase) {
     return _class;
 }(Appbase);
 module.exports = mofron.comp.Login;
+/* end of file */
 
 /***/ }),
 /* 31 */
@@ -6188,8 +6398,13 @@ mf.comp.AppBase = function (_mf$Component) {
                 this.addChild(bg);
 
                 /* contents */
-                var conts = new mf.Component({ height: hei });
+                var conts = new mf.Component({
+                    style: { 'position': 'relative',
+                        'z-index': 10 },
+                    height: hei
+                });
                 this.addChild(conts);
+
                 this.target(conts.target());
 
                 mf.func.addResizeWin(function (p) {
@@ -6265,7 +6480,15 @@ mf.comp.AppBase = function (_mf$Component) {
             try {
                 if (undefined === cnt) {
                     /* getter */
-                    return this.child()[2].child();
+                    var chd = this.child();
+                    var ret = new Array();
+                    for (var cidx in chd) {
+                        if (2 >= cidx) {
+                            continue;
+                        }
+                        ret.push(chd[cidx]);
+                    }
+                    return ret;
                 }
                 /* setter */
                 this.addChild(cnt);
@@ -6301,6 +6524,7 @@ mf.comp.AppBase = function (_mf$Component) {
                     /* getter */
                     return this.header().color();
                 }
+                /* setter */
                 /* set header color */
                 this.header().color(clr);
             } catch (e) {
@@ -7004,11 +7228,7 @@ mf.comp.LoginForm = function (_Form) {
             var _this = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this));
 
             _this.name('LoginForm');
-            if (null === po) {
-                _this.adom();
-            } else {
-                _this.prmOpt(po);
-            }
+            _this.prmOpt(po);
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -7034,7 +7254,7 @@ mf.comp.LoginForm = function (_Form) {
                     require: true,
                     secret: true
                 }));
-                this.size(this.size());
+
                 this.submitComp().text('Login');
             } catch (e) {
                 console.error(e.stack);
@@ -7049,65 +7269,6 @@ mf.comp.LoginForm = function (_Form) {
                 if (null !== inp) {
                     //this.input(inp);
                 }
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'size',
-        value: function size(siz) {
-            try {
-                if (undefined === siz) {
-                    /* getter */
-                    if (undefined === this.m_size) {
-                        this.size(20);
-                    }
-                    return this.m_size;
-                }
-                /* setter */
-                if ('number' !== typeof siz) {
-                    throw new Error('invalid paramter');
-                }
-                this.m_size = siz;
-
-                var chd = this.child();
-                for (var cidx in chd) {
-                    if (this.child().length - 1 == cidx && true === mf.func.isObject(chd[cidx], 'Component')) {
-                        this.submitComp().height(siz - siz / 3);
-                    } else {
-                        chd[cidx].height(siz);
-                    }
-                }
-            } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-        }
-    }, {
-        key: 'height',
-        value: function height() {
-            try {
-                var hei = 0;
-                var buf = null;
-                var chd = this.child();
-                for (var cidx in chd) {
-                    if (true === mf.func.isInclude(chd[cidx], 'Message') && true !== chd[cidx].visible()) {
-                        /* noting to do */
-                        continue;
-                    } else if (this.child().length - 1 == cidx && true === mf.func.isObject(chd[cidx], 'Component')) {
-                        hei += this.submitComp().height();
-                    } else {
-                        buf = null;
-                        buf = chd[cidx].height();
-                        if ('number' === typeof buf) {
-                            hei += buf;
-                        }
-                    }
-                    hei += this.getConfig('layout', 'Margin').value();
-                }
-                hei += this.getConfig('layout', 'Margin').value();
-                return hei;
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -7420,7 +7581,7 @@ mf.comp.Message = function (_mf$Component) {
                 if (undefined === frm) {
                     /* getter */
                     if (undefined === this.m_msg_frm) {
-                        this.frame(new Frame());
+                        this.frame(new Frame({}));
                     }
                     return this.m_msg_frm;
                 }
@@ -7428,7 +7589,7 @@ mf.comp.Message = function (_mf$Component) {
                 if (true !== mf.func.isInclude(frm, 'Frame')) {
                     throw new Error('invalid parameter');
                 }
-                frm.size(null, null);
+                frm.size(200, 30);
                 frm.style({
                     'display': 'flex',
                     'align-items': 'center'
@@ -7517,8 +7678,8 @@ mf.comp.Message = function (_mf$Component) {
         key: 'height',
         value: function height(val) {
             try {
-                if (40 < val) {
-                    this.text().size(val - 20);
+                if (undefined !== val) {
+                    this.text().size(val - 5);
                 }
                 return this.frame().height(val);
             } catch (e) {
@@ -7530,8 +7691,8 @@ mf.comp.Message = function (_mf$Component) {
 
     return _class;
 }(mf.Component);
-mofron.comp.message = {};
 module.exports = mofron.comp.Message;
+/* end of file */
 
 /***/ }),
 /* 39 */
@@ -7573,8 +7734,12 @@ mofron.layout.Margin = function (_mofron$Layout) {
             if ('object' === (typeof tp === 'undefined' ? 'undefined' : _typeof(tp))) {
                 _this.prmOpt(tp);
             } else {
-                _this.type(tp);
-                _this.value(val);
+                if ('string' === typeof tp) {
+                    _this.type(tp);
+                    _this.value(val);
+                } else if ('number' === typeof tp) {
+                    _this.value(tp);
+                }
             }
         } catch (e) {
             console.error(e.stack);
@@ -7588,7 +7753,7 @@ mofron.layout.Margin = function (_mofron$Layout) {
         value: function layoutConts(idx, tgt) {
             try {
                 var mg = 'margin';
-                if ('' !== this.type()) {
+                if ('' !== this.type() && null !== this.type()) {
                     mg += '-' + this.type();
                 }
                 var setmgn = {};
@@ -7604,7 +7769,7 @@ mofron.layout.Margin = function (_mofron$Layout) {
         value: function type(tp) {
             try {
                 if (undefined === tp) {
-                    return this.m_type;
+                    return undefined === this.m_type ? null : this.m_type;
                 }
                 if ('string' != typeof tp || '' != tp && 'top' != tp && 'right' != tp && 'bottom' != tp && 'left' != tp) {
                     throw new Error('invalid parameter');
@@ -7820,7 +7985,6 @@ mf.comp.Input = function (_Form) {
         try {
             var _this = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this));
 
-            _this.m_defsiz = true;
             _this.name('Input');
             _this.prmOpt(po);
         } catch (e) {
@@ -7846,33 +8010,26 @@ mf.comp.Input = function (_Form) {
             try {
                 /* set wrap dom */
                 this.adom().addChild(new mf.Dom('div', this));
-                var inp = new mofron.Dom({
+                var inp = new mf.Dom({
                     tag: 'input',
                     target: this,
                     attr: { 'type': 'text' }
                 });
-                if (null !== prm) {
+                /* add label */
+                this.addChild(new Text(''));
+                if (undefined !== prm) {
                     this.label(prm);
                 }
-                /* add label */
-                this.addChild(this.label());
+
                 /* add input */
                 this.target().addChild(inp);
-
                 this.target(inp);
-                /* default size */
-                this.size(150, 30, true);
+
+                /* set default size */
+                this.size(150, 25);
             } catch (e) {
                 console.error(e.stack);
                 throw e;
-            }
-        }
-    }, {
-        key: 'size',
-        value: function size(x, y, f) {
-            _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'size', this).call(this, x, y);
-            if (undefined === f) {
-                this.m_defsiz = false;
             }
         }
     }, {
@@ -7881,14 +8038,12 @@ mf.comp.Input = function (_Form) {
             try {
                 if (undefined === val) {
                     /* getter */
-                    return mofron.func.getLength(this.style('width'));
+                    var wret = mf.func.getLength(this.style('width'));
+                    return 'number' === wret ? wret + 6 : wret;
                 }
-                this.adom().style({
-                    'width': 'number' === typeof val ? val - 6 + 'px' : val
-                });
                 /* setter */
                 this.style({
-                    'width': '100%'
+                    'width': 'number' === typeof val ? val - 6 + 'px' : val
                 });
             } catch (e) {
                 console.error(e.stack);
@@ -7902,27 +8057,37 @@ mf.comp.Input = function (_Form) {
                 var lbl_flg = '' === this.label().text() ? false : true;
                 if (undefined === val) {
                     /* getter */
-                    return undefined === this.m_height ? null : this.m_height;
+                    var hret = 0;
+                    if (true === lbl_flg) {
+                        hret = this.label().height();
+                    }
+                    hret += mf.func.getLength(this.style('height'));
+                    return 'number' === typeof hret ? hret + 6 : hret;
                 }
                 /* setter */
                 if ('number' !== typeof val) {
                     throw new Error('invalid parameter');
                 }
 
-                this.adom().style({ 'height': val + 'px' });
-
-                var inp_siz = val;
-                if (true === lbl_flg) {
-                    /* exists label */
-                    this.label().size(val / 2);
-                    inp_siz = val / 2;
-                }
-
+                var inp_siz = true === lbl_flg ? val * 0.4 + 3 : val;
+                inp_siz -= 6;
+                this.label().height(true === lbl_flg ? val * 0.6 - 3 : undefined);
                 this.style({
-                    'height': inp_siz - 6 + 'px'
+                    'height': inp_siz + 'px',
+                    'font-size': inp_siz - 2 + 'px'
                 });
-
-                this.m_height = val;
+                if (true === lbl_flg) {
+                    this.style({ 'position': 'relative' });
+                    var tval = 0;
+                    if (40 >= val) {
+                        tval = -8;
+                    } else if (50 >= val) {
+                        tval = -4;
+                    } else if (60 >= val) {
+                        tval = -2;
+                    }
+                    this.style({ 'top': tval + 'px' });
+                }
             } catch (e) {
                 console.error(e.stack);
                 throw e;
@@ -8019,33 +8184,27 @@ mf.comp.Input = function (_Form) {
             try {
                 if (undefined === lbl) {
                     /* getter */
-                    if (undefined === this.m_label) {
-                        this.label('');
-                    }
-                    return this.m_label;
+                    return this.child()[0];
                 }
                 /* setter */
                 if (!('string' === typeof lbl || true === mofron.func.isInclude(lbl, 'Text'))) {
                     throw new Error('invalid parameter');
                 }
 
+                var rsiz = false;
+                if (25 === this.height()) {
+                    rsiz = true;
+                }
+
                 if ('string' === typeof lbl) {
-                    if (undefined === this.m_label) {
-                        this.m_label = new Text(lbl);
-                    } else {
-                        this.m_label.text(lbl);
-                    }
+                    this.label().text(lbl);
                 } else {
                     if (0 !== this.child().length) {
-                        this.target(this.vdom().child()[0].child()[0]);
-                        this.updChild(0, lbl);
-                        this.target(this.vdom().child()[0].child()[1]);
-                        this.vdom().child()[0].child()[0].child().pop();
+                        this.updChild(this.label(), lbl);
                     }
-                    this.m_label = lbl;
                 }
-                if ('' !== this.label().text() && true === this.m_defsiz) {
-                    this.height(this.height() * 2);
+                if (true === rsiz) {
+                    this.height(50);
                 }
             } catch (e) {
                 console.error(e.stack);
@@ -8056,7 +8215,6 @@ mf.comp.Input = function (_Form) {
 
     return _class;
 }(Form);
-mofron.comp.input = {};
 module.exports = mofron.comp.Input;
 
 /***/ }),
@@ -8067,6 +8225,8 @@ module.exports = mofron.comp.Input;
 
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8109,6 +8269,51 @@ mf.effect.Center = function (_mf$Effect) {
     }
 
     _createClass(_class, [{
+        key: 'target',
+        value: function target(prm) {
+            try {
+                var ret = _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'target', this).call(this, prm);
+                if (undefined === ret) {
+                    if (null === this.target().parent()) {
+                        _get(_class.prototype.__proto__ || Object.getPrototypeOf(_class.prototype), 'target', this).call(this).parentListener(function (tgt, eff) {
+                            try {
+                                var pnt = tgt.parent();
+                                pnt.target().styleListener('height', eff.pntResizeEvent, [pnt, eff]);
+                            } catch (e) {
+                                console.error(e.stack);
+                                throw e;
+                            }
+                        }, this);
+                    }
+                    this.target().target().styleListener('height', function (eff) {
+                        try {
+                            eff.execute(true);
+                        } catch (e) {
+                            console.error(e.stack);
+                            throw e;
+                        }
+                    }, this);
+                }
+                return ret;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
+        key: 'pntResizeEvent',
+        value: function pntResizeEvent(prm) {
+            try {
+                if (prm[1].target().parent().getId() === prm[0].getId()) {
+                    console.log(prm[1].speed());
+                    prm[1].execute(true);
+                }
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        }
+    }, {
         key: 'xflag',
         value: function xflag(flg) {
             try {
@@ -8151,6 +8356,7 @@ mf.effect.Center = function (_mf$Effect) {
                 var info = this.getInfo();
                 if (true === this.xflag()) {
                     tgt.style({
+                        'display': 'flex',
                         'margin-left': 'auto',
                         'margin-right': 'auto'
                     });
@@ -8181,6 +8387,7 @@ mf.effect.Center = function (_mf$Effect) {
             try {
                 if (true === this.xflag()) {
                     tgt.style({
+                        'display': null,
                         'margin-left': null,
                         'margin-right': null
                     });
@@ -8238,6 +8445,8 @@ module.exports = mofron.effect.Center;
 "use strict";
 
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8262,17 +8471,10 @@ mofron.effect.Fade = function (_mofron$Effect) {
         _classCallCheck(this, _class);
 
         try {
-            var _this = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this));
+            var _this = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this, po));
 
             _this.name('Fade');
-
-            _this.prmOpt(po);
-            if (null !== _this.param()) {
-                _this.speed(po);
-            }
-
-            /* set default speed */
-            if (0 === _this.speed()) {
+            if (undefined === po || 'object' === (typeof po === 'undefined' ? 'undefined' : _typeof(po)) && undefined === _typeof(po.speed)) {
                 _this.speed(0.7);
             }
         } catch (e) {

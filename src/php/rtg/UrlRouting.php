@@ -90,6 +90,7 @@ class UrlRouting {
                 }
             }
             if (false === $login_attr_hit) {
+                /* there is no 'login' attribute in the map */
                 return false;
             }
             
